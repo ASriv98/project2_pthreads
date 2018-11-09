@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "timing.h"
 
 // All sorts should sort in ascending order and take an int[] array and int array_size as input
 int compare(const void * a, const void * b)
