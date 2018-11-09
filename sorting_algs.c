@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "timing.h"
+#include <time.h>
+
 
 // All sorts should sort in ascending order and take an int[] array and int array_size as input
 int compare(const void * a, const void * b)
 {
-	return ((int)a - (int)b);
+	return (*(int*)a - *(int*)b);
 }
 // sort_test function takes in a sorting function as input and returns true if it correctly sorts
 char sorted_test(void(*function)(int[], int)) {
@@ -37,11 +38,14 @@ void complexity_test(void(*function)(int[], int)) {
 			int random_integer = rand() % 50;
 			test_array[i] = random_integer;
 		}
-		reset_and_start_timer();
+		//reset_and_start_timer();
+		clock_t start = clock(), diff;
 		(*function)(test_array, array_size);
-		double dt = get_elapsed_mcycles();
-		printf("%d \n", array_size);
-		printf("%f \n", dt);
+		//double dt = get_elapsed_mcycles();
+		diff = clock() - start;
+		int milli_sec = diff * 1000 / CLOCKS_PER_SEC;
+		printf("Array Size: %d", array_size);
+		printf("Time taken: %d seconds %d milliseconds\n", milli_sec/1000, milli_sec%1000);
 	}
 }
 
