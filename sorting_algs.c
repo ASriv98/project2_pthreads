@@ -37,11 +37,11 @@ void complexity_test(void(*function)(int[], int)) {
 			int random_integer = rand() % 50;
 			test_array[i] = random_integer;
 		}
-
-		int duration = 0;
+		reset_and_start_timer();
 		(*function)(test_array, array_size);
+		double dt = get_elapsed_mcycles();
 		printf("%d \n", array_size);
-		printf("%d \n", duration);
+		printf("%f \n", dt);
 	}
 }
 
