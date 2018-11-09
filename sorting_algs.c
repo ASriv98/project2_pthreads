@@ -14,7 +14,7 @@ char sorted_test(void(*function)(int[], int)) {
 	int array_size = 10;
 
 	for (int i = 0; i < array_size; i++) {
-		int random_integer = rand() % 50;
+		int random_integer = rand() % 100;
 		test_array[i] = random_integer;
 		sorted_array[i] = random_integer;
 	}
@@ -49,7 +49,7 @@ void complexity_test(void(*function)(int[], int)) {
 	}
 }
 
-void sequential_bubbleSort(int *array, int array_size)
+void sequential_bubbleSort(int array[], int array_size)
 {
 	int j = 0;
 	int temp;
@@ -73,6 +73,100 @@ void sequential_bubbleSort(int *array, int array_size)
 	}
 }
 
+void sequential_merge(int array[], int left, int middle, int right){
+
+	int size_left  = middle - left + 1;
+	int size_right = right - middle;
+
+	int array_left_half[size_left];
+	int array_right_half[size_right];
+
+	for (int i = 0; i < size_left; i++)
+	{
+        array_left_half[i] = array[left + i]; 
+	}
+    for (int j = 0; j < size_right; j++)
+    {
+        array_right_half[j] = array[middle + 1 + j]; 
+    }
+
+    int i = 0;
+    int j = 0;
+    int k = left;
+
+    while (i < size_left && j < size_right) 
+    { 
+        if (array_left_half[i] <= array_right_half[j]) 
+        { 
+            array[k] = array_left_half[i]; 
+            i++; 
+            k++;
+        } 
+        else
+        { 
+            array[k] = array_right_half[j]; 
+            j++;
+            k++; 
+        } 
+    } 
+  
+
+    while (i < size_left) 
+    { 
+        array[k] = array_left_half[i]; 
+        i++; 
+        k++; 
+    } 
+  
+    while (j < size_right) 
+    { 
+        array[k] = array_right_half[j]; 
+        j++; 
+        k++; 
+    } 
+
+
+}
+
+void sequential_merge_sort(int array[], int left, int right)
+{
+	int middle = (left + right - 1) / 2;
+
+	if (left < right)
+	{
+	sequential_merge_sort(array, left, middle);
+	sequential_merge_sort(array, middle+1, right);
+	sequential_merge(array, left, middle, right);
+	}
+	
+}
+
+void sequential_merge_sort_wrapper(int array[], int array_size){
+	sequential_merge_sort(array, 0, array_size-1);
+}
+
+void sequential_bucketSort(int array[], int array_size){
+
+	int max = array[0];
+
+	for (int c = 1; c < array_size; c++)
+	{
+		if(array[c] > max)
+			max = array[c];
+		c++;
+	}
+	max = max + 1;
+	int counter[max];
+	for(int i = 0; i < max; i++)
+		counter[i] = 0;
+	for(int i = 0; i < array_size; i++)
+		(counter[array[i]])++;
+	for(int i=0, j=0; i < max; i++)
+		for(; counter[i] > 0; (counter[i])--){
+			array[j++] = i;}
+}
+
+
 int main()
 {
 	if (sorted_test(sequential_bubbleSort)) {
@@ -81,6 +175,20 @@ int main()
 	}
 	else
 		printf("Sequential bubble sort fails testing\n");
+
+	if (sorted_test(sequential_merge_sort_wrapper)) {
+		printf("Sequential merge sort passes testing\n");
+		complexity_test(sequential_merge_sort_wrapper);
+	}
+	else
+		printf("Sequential merge sort fails testing\n");
+
+	if (sorted_test(sequential_bucketSort)) {
+		printf("Sequential bucket sort passes testing\n");
+		complexity_test(sequential_bucketSort);
+	}
+	else
+		printf("Sequential bucket sort fails testing\n");
 
 	return 0;
 }
