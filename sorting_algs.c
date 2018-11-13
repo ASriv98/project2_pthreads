@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <pthread.h>
+
 
 
 // All sorts should sort in ascending order and take an int[] array and int array_size as input
@@ -165,6 +167,16 @@ void sequential_bucketSort(int array[], int array_size){
 		for(; counter[i] > 0; (counter[i])--){
 			array[j++] = i;}
 }
+
+
+
+void parallel_bubble_sort(){
+	
+}
+
+
+
+
 
 
 int main()
