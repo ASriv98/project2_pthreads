@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-lpthread -Iinclude
+CFLAGS=-pthread -Iinclude
 HEADER=include/password_crack.h
 
 default: crack

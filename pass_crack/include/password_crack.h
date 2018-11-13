@@ -11,5 +11,10 @@
 #include <unistd.h>
 
 char map(int convert);
+void* crack(void* args);
+struct params {
+	char* password;
+	int len;
+};
 
 #endif
