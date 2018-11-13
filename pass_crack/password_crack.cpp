@@ -141,6 +141,7 @@ void* crack(void* args){
       return (void*) guess;
     }
   }
+  printf("Thread: %d Finished!\n", currThread);
   return NULL;
 }
 
