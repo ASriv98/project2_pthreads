@@ -6,6 +6,7 @@
 #include <string.h>
 #include <iostream>
 #include <math.h>
+#include <signal.h>
 #include <ctime>
 #include <pthread.h>
 #include <unistd.h>
@@ -14,7 +15,9 @@ char map(int convert);
 void* crack(void* args);
 struct params {
 	char* password;
-	int len;
+	int passLen;
+	int totalThreads;
+	int currThread;
 };
 
 #endif

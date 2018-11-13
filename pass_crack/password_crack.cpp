@@ -2,23 +2,28 @@
 
 //Set size is 36 characters and one blank character
 float setSize = 36;
+bool done = false;
 
 int main() {
-    char password[] = "aacbab";
-
+    char password[] = "aacba";
     int possibleLen = strlen(password);
 
+    int numThreads = 4;
+
+    struct timespec start, finish;
+    double elapsed;
+
+    
     printf("-Starting Non-Parallel Password Cracker-\n");
 
     // Start Timer
-    std:: clock_t start;
-    double duration;
-    start = std::clock();
+    clock_gettime(CLOCK_MONOTONIC, &start);
 
     // Loop through len 1 - possible len
     for (int currLen = 1; currLen <= possibleLen; ++currLen) {
     // Loop for all possible combinations
-        char guess[currLen + 1];
+      char* guess = new char[currLen + 1];
+      memset(guess, '\0', currLen +1);
   
       for (int currChar = 0; currChar <= (pow(setSize, (float) currLen)); ++currChar) {
         // Set guess
@@ -35,9 +40,14 @@ int main() {
         }
       }
     }
-    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-    printf("Time: %f\n", duration);
 
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    printf("Time: %f\n", elapsed);
+
+    
+    
     /*
     // Test crack function
     printf("-Testing function-\n");
@@ -45,7 +55,9 @@ int main() {
 
     struct params* args = new struct params;
     args->password = password;
-    args->len = 5;
+    args->passLen = 5;
+    args->totalThreads = numThreads;
+    args->currThread = 1;
 
     char* pass_guess = (char*) crack((void*) args);
 
@@ -55,46 +67,66 @@ int main() {
 
     */
 
+    
     // Use Pthreads
+
     printf("-Starting Parallel PThread Cracker-\n");
-    start = std::clock();
+    clock_gettime(CLOCK_MONOTONIC, &start);
 
-    pthread_t thread[possibleLen];
+    pthread_t thread[numThreads];
 
-    for (int i = 0; i < possibleLen; i++){
-      struct params* args = new struct params;
-      args -> password = password;
-      args -> len = i+1;
-      pthread_create( &thread[i], NULL, crack, (void*) args);
-    }
+    // Outer loop to check different lengths of passwords
+    for (int lenCheck = 0; lenCheck < possibleLen; ++lenCheck) {
+      for (int i = 0; i < numThreads; i++){
+        struct params* args = new struct params;
+        args->password = password;
+        args->passLen = lenCheck + 1;
+        args->totalThreads = numThreads;
+        args->currThread = i;
+        pthread_create( &thread[i], NULL, crack, (void*) args);
+      }
 
-    //printf("All threads running\n");
+      //printf("All threads running\n");
 
-    for (int i = 0; i < possibleLen; i++){
-      char* pass_guess;
-      pthread_join(thread[i], (void**) &pass_guess);
-      if(pass_guess != NULL){
-        printf("Returned Value: %s\n", pass_guess);
+      for (int i = 0; i < numThreads; i++){
+        char* pass_guess;
+        pthread_join(thread[i], (void**) &pass_guess);
+        if(pass_guess != NULL){
+          printf("Returned Value: %s\n", pass_guess);
+        }
       }
     }
-    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-    printf("Time: %f\n", duration);
 
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    printf("Time: %f\n", elapsed);
+    
     return 0;
 }
 
 void* crack(void* args){
   // Get arguments
   struct params *params = (struct params*) args;
-  char* password = params -> password;
-  int currLen = params -> len;
+  char* password = params->password;
+  int currLen = params->passLen;
+  int totalThreads = params->totalThreads;
+  int currThread = params->currThread;
 
   //printf("Values: %d\t %s\n", currLen, password);
 
   char* guess = new char[currLen+1];
   memset(guess, '\0', currLen+1);
 
-  for (int currChar = 0; currChar <= (pow(setSize, (float) currLen)); ++currChar) {
+  int partitionOfPass = pow(setSize, (float) currLen) / totalThreads;
+  int passStart = currThread * partitionOfPass;
+
+  //printf("Look: %d\t %d\n", passStart, passStart + partitionOfPass);
+
+  for (int currChar = passStart; currChar <= passStart + partitionOfPass; ++currChar) {
+    if (done == true) {
+      break;
+    }
     // Set guess
     for (int guessIndex = 0; guessIndex < currLen; ++guessIndex) {
       char temp = map((currChar / (int) pow(setSize, guessIndex)) % (int) setSize);
@@ -104,7 +136,8 @@ void* crack(void* args){
 
     // Check if it compares
     if (strcmp(password, guess) == 0) {
-      printf("Match Found Single!! \nLen: %d\tGuess: %s\n",currLen, guess);
+      printf("Match Found Parallel!! \nLen: %d\tGuess: %s\n",currLen, guess);
+      done = true;
       return (void*) guess;
     }
   }
