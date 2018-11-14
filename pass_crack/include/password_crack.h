@@ -4,7 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <iostream>
+#include <functional>
+#include <string>
+
 #include <math.h>
 #include <signal.h>
 #include <ctime>
@@ -14,7 +18,7 @@
 char map(int convert);
 void* crack(void* args);
 struct params {
-	char* password;
+	size_t password;
 	int passLen;
 	int totalThreads;
 	int currThread;

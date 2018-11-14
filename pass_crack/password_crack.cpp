@@ -5,8 +5,12 @@ float setSize = 36;
 bool done = false;
 
 int main() {
-    char password[] = "aabca";
-    int possibleLen = strlen(password);
+    char passwordStr[] = "aabca";
+
+    int possibleLen = strlen(passwordStr);
+
+    std::hash<std::string> ptr_hash;
+    std::size_t password = ptr_hash(std::string(passwordStr));
 
     int numThreads = 4;
 
@@ -106,11 +110,13 @@ int main() {
 void* crack(void* args){
   // Get arguments
   struct params *params = (struct params*) args;
-  char* password = params->password;
+  size_t password = params->password;
   int possLen = params->passLen;
   int totalThreads = params->totalThreads;
   int currThread = params->currThread;
   int count = 0;
+
+  std::hash<std::string> ptr_hash;
 
   //printf("Values: %d\t %s\n", currLen, password);
   for(int currLen = 1; currLen <= possLen; ++currLen) {
@@ -136,7 +142,7 @@ void* crack(void* args){
       //printf("Iteration: %d\tGuess: %s\n", currChar, guess);
 
       // Check if it compares
-      if (strcmp(password, guess) == 0) {
+      if (password == ptr_hash(std::string(guess))) {
 
         printf("Match Found Parallel!! \nLen: %d\tGuess: %s\t Iterations: %d\t Current Count: %d\n",currLen, guess, count, currChar);
         done = true;
