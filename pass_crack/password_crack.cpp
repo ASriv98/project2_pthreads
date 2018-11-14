@@ -5,7 +5,7 @@ float setSize = 36;
 bool done = false;
 
 int main() {
-    char password[] = "aacba";
+    char password[] = "aabca";
     int possibleLen = strlen(password);
 
     int numThreads = 4;
@@ -13,7 +13,7 @@ int main() {
     struct timespec start, finish;
     double elapsed;
 
-    
+    /*
     printf("-Starting Non-Parallel Password Cracker-\n");
 
     // Start Timer
@@ -45,7 +45,7 @@ int main() {
     elapsed = (finish.tv_sec - start.tv_sec);
     elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
     printf("Time: %f\n", elapsed);
-
+    */
     
     
     /*
@@ -76,24 +76,22 @@ int main() {
     pthread_t thread[numThreads];
 
     // Outer loop to check different lengths of passwords
-    for (int lenCheck = 0; lenCheck < possibleLen; ++lenCheck) {
-      for (int i = 0; i < numThreads; i++){
-        struct params* args = new struct params;
-        args->password = password;
-        args->passLen = lenCheck + 1;
-        args->totalThreads = numThreads;
-        args->currThread = i;
-        pthread_create( &thread[i], NULL, crack, (void*) args);
-      }
+    for (int i = 0; i < numThreads; i++){
+      struct params* args = new struct params;
+      args->password = password;
+      args->passLen = possibleLen;
+      args->totalThreads = numThreads;
+      args->currThread = i;
+      pthread_create( &thread[i], NULL, crack, (void*) args);
+    }
 
-      //printf("All threads running\n");
+    //printf("All threads running\n");
 
-      for (int i = 0; i < numThreads; i++){
-        char* pass_guess;
-        pthread_join(thread[i], (void**) &pass_guess);
-        if(pass_guess != NULL){
-          printf("Returned Value: %s\n", pass_guess);
-        }
+    for (int i = 0; i < numThreads; i++){
+      char* pass_guess;
+      pthread_join(thread[i], (void**) &pass_guess);
+      if(pass_guess != NULL){
+        printf("Returned Value: %s\n", pass_guess);
       }
     }
 
@@ -109,39 +107,44 @@ void* crack(void* args){
   // Get arguments
   struct params *params = (struct params*) args;
   char* password = params->password;
-  int currLen = params->passLen;
+  int possLen = params->passLen;
   int totalThreads = params->totalThreads;
   int currThread = params->currThread;
+  int count = 0;
 
   //printf("Values: %d\t %s\n", currLen, password);
+  for(int currLen = 1; currLen <= possLen; ++currLen) {
+    char* guess = new char[currLen+1];
+    memset(guess, '\0', currLen+1);
 
-  char* guess = new char[currLen+1];
-  memset(guess, '\0', currLen+1);
+    int partitionOfPass = pow(setSize, (float) currLen) / totalThreads;
+    int passStart = currThread * partitionOfPass;
 
-  int partitionOfPass = pow(setSize, (float) currLen) / totalThreads;
-  int passStart = currThread * partitionOfPass;
+    //printf("Pass: %d\t Thread: %d\t Start: %d\t End: %d\n", currLen, currThread, passStart, passStart + partitionOfPass);
 
-  //printf("Look: %d\t %d\n", passStart, passStart + partitionOfPass);
+    for (int currChar = passStart; currChar <= passStart + partitionOfPass; ++currChar) {
+      if (done == true) {
+        break;
+      }
+      count++;
 
-  for (int currChar = passStart; currChar <= passStart + partitionOfPass; ++currChar) {
-    if (done == true) {
-      break;
-    }
-    // Set guess
-    for (int guessIndex = 0; guessIndex < currLen; ++guessIndex) {
-      char temp = map((currChar / (int) pow(setSize, guessIndex)) % (int) setSize);
-      guess[guessIndex] = temp;
-    }
-    //printf("Iteration: %d\tGuess: %s\n", currChar, guess);
+      // Set guess
+      for (int guessIndex = 0; guessIndex < currLen; ++guessIndex) {
+        char temp = map((currChar / (int) pow(setSize, guessIndex)) % (int) setSize);
+        guess[guessIndex] = temp;
+      }
+      //printf("Iteration: %d\tGuess: %s\n", currChar, guess);
 
-    // Check if it compares
-    if (strcmp(password, guess) == 0) {
-      printf("Match Found Parallel!! \nLen: %d\tGuess: %s\n",currLen, guess);
-      done = true;
-      return (void*) guess;
+      // Check if it compares
+      if (strcmp(password, guess) == 0) {
+
+        printf("Match Found Parallel!! \nLen: %d\tGuess: %s\t Iterations: %d\t Current Count: %d\n",currLen, guess, count, currChar);
+        done = true;
+        return (void*) guess;
+      }
     }
   }
-  printf("Thread: %d Finished!\n", currThread);
+  //printf("Thread: %d Finished! Iterations: %d\n", currThread, count);
   return NULL;
 }
 
