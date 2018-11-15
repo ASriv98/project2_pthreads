@@ -1,8 +1,8 @@
 import numpy as np
 import itertools
-from pprint import pprint
+import networkx as nx
 
-# Use Python3
+# Use Python 3.5
 
 class UndirectedErdosRenyi:
     def __init__(self, num_vertices, p_edge, rand_low, rand_high):
@@ -19,7 +19,9 @@ class UndirectedErdosRenyi:
                 else:
                     self.adjacency_matrix[row_number][column_number] = 0
                     self.adjacency_matrix[column_number][row_number] = 0
-        self.connected_bool = all(x != 0 for x in itertools.chain(*self.adjacency_matrix))
+
+        self.connected_bool = nx.is_connected(nx.from_numpy_matrix(np.array(self.adjacency_matrix)))
+
 
 
 # itr is short for "iterable" and can be any sequence, iterator, or generator
@@ -38,14 +40,15 @@ def main():
     rand_low = 1 # random weight for edge low bbound
     rand_high = 10 # random weight for edge high bound
     random_graph = UndirectedErdosRenyi(num_vertices, p_edge, rand_low, rand_high)
-    print('int adj_matrix[{:d}][{:d}] = {{'.format(num_vertices, num_vertices))
-    for row in random_graph.adjacency_matrix:
-        print("{", end='')
-        for item in notlast(row):
-            print("{:d}".format(item), end=", ")
-        print("{:d}".format(row[-1]), end="}, ")
-        print("")
-    print('};')
+    if random_graph.connected_bool:
+        print('int adj_matrix[{:d}][{:d}] = {{'.format(num_vertices, num_vertices))
+        for row in random_graph.adjacency_matrix:
+            print("{", end='')
+            for item in notlast(row):
+                print("{:d}".format(item), end=", ")
+            print("{:d}".format(row[-1]), end="}, ")
+            print("")
+        print('};')
 
 if __name__ == "__main__":
     main()
