@@ -21,4 +21,6 @@ using namespace std;
 
 vector<int> primsMST(vector<vector<int>> graph);
 
+vector<vector<int>> init_AdjMatrix(int numVertices);
+
 #endif

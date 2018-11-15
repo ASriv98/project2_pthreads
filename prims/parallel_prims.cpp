@@ -69,3 +69,20 @@ vector<int> primsMST(vector<vector<int>> graph){
     }
     return mst;
 }
+
+vector<vector<int>> init_AdjMatrix(int numVertices) {
+    vector<vector<int>> graph(numVertices, vector<int>(numVertices));
+    for (int i = 0; i < numVertices; i++){
+        for (int j = i; j < numVertices; j++) {     // Traversing through upper triangular
+            //if node is self referencing no distance
+            if (i = j)
+                graph[i][j] = 0;
+            else {
+                // Weights between 1-9 ensures fully connected.
+                graph[i][j] = rand() % 9 + 1; 
+                graph[j][i] = rand() % 9 + 1;
+            }
+        }
+    }
+    return graph;
+}
