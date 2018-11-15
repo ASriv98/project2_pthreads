@@ -1,6 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <cstdlib>
 
 using namespace std;
 
@@ -28,8 +31,8 @@ int minEdge(vector<int> dist ,vector<bool> inMst){
 
 void init_AdjMatrix()
 {
-	for (int i = 0; i < numVertex; i++){
-		for (int j = i; j < numVertex; j++) {		// Traversing through upper triangular
+	for (int i = 0; i < numVertices; i++){
+		for (int j = i; j < numVertices; j++) {		// Traversing through upper triangular
 			//if node is self referencing no distance
 			if (i = j)
 				graph[i][j] = 0;
@@ -67,6 +70,7 @@ void sequenPrimMST() {
     printf("Edge \tWeight\n"); 
     for (int i = 1; i < numVertices; i++) {
         printf("%d - %d \t%d \n", mst[i], i, graph[i][mst[i]]); 
+}
 }
 
 int main()
