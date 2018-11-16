@@ -23,4 +23,23 @@ vector<int> primsMST(vector<vector<int>> graph);
 
 vector<vector<int>> init_AdjMatrix(int numVertices);
 
+void printGraph(vector<vector<int>> const &input);
+
+vector<int> parallel_primsMST(vector<vector<int>> &graph, int numThreads);
+
+void* parallel_primsSolve(void* args);
+
+struct params {
+    vector<vector<int>> *graph;
+    vector<int> *mst;
+    vector<bool> *inMst;
+    vector<int> *dist;
+    int currThread;
+    int numThreads;
+    int* uMinThreads;
+    pthread_barrier_t* smallestEdgeBarrier;
+    pthread_barrier_t* updateEdgeBarrier;
+};
+
+
 #endif
