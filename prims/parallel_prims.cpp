@@ -28,7 +28,7 @@ int main()
 
 
     printf("Edge \tWeight\n"); 
-    for (int i = 1; i < graph.size(); i++) {
+    for (int i = 0; i < graph.size(); i++) {
         printf("%d - %d \t%d \n", mst[i], i, graph[i][mst[i]]); 
     }
     cout << endl;
@@ -48,7 +48,7 @@ int main()
 
 
     printf("Edge \tWeight\n"); 
-    for (int i = 1; i < graph.size(); i++) {
+    for (int i = 0; i < graph.size(); i++) {
         printf("%d - %d \t%d \n", mst[i], i, graph[i][mst[i]]); 
     }
 
@@ -81,14 +81,21 @@ vector<int> primsMST(vector<vector<int>> graph){
         }
         // Put vertex into mst
         inMst[u] = true;
+        cout << "Found: " << u << endl;
 
-        // Parallel Section
+
         for (int v = 0; v < numVertices; v++) {
             int edge = graph[u][v];
-            if (inMst[v] == false && edge != 0 && edge < dist[v]) {
+            if (edge != 0 && edge < dist[v]) {
+                cout << "uv: " << u << v << endl;
+
                 mst[v] = u;
                 dist[v] = edge;
             }
+        }            
+        printf("Edge \tWeight\n"); 
+        for (int i = 1; i < graph.size(); i++) {
+            printf("%d - %d \t%d \n", mst[i], i, graph[i][mst[i]]); 
         }
     }
     return mst;
@@ -118,6 +125,7 @@ vector<int> parallel_primsMST(vector<vector<int>> &graph, int numThreads) {
       inMst[i] = false;
   }
 
+  dist[0] = 0;
   /* Spawn Pthreads */
 
   for (int i = 0; i < numThreads; i++){
@@ -125,7 +133,6 @@ vector<int> parallel_primsMST(vector<vector<int>> &graph, int numThreads) {
     // Initalize all pthread variables
     struct params* args = new struct params;
     args->graph = &graph;
-    args->mst = &mst;
     args->dist = &dist;
     args->inMst = &inMst;
     args->currThread = i;
@@ -148,20 +155,30 @@ vector<int> parallel_primsMST(vector<vector<int>> &graph, int numThreads) {
     pthread_barrier_wait(&smallestEdgeBarrier);
 
     /* Find minimum length vertex from all threads */
-    int u = uMinThreads[0];
+    int u;
+    for (int j = 0; j < numThreads; j++) {
+      cout << uMinThreads[j] << endl;
+      if (inMst[uMinThreads[j]] == false) {
+        u = uMinThreads[j];
+      }
+    }
+    cout << "V not in mst: " << u << endl;
     for( int i = 0; i < numThreads; i++) {
       // Check if the current stored distance is larger than other threads
-      if (dist[u] > dist[uMinThreads[i]]) {
+      if (inMst[i] == false && dist[u] > dist[uMinThreads[i]]) {
         u = i;
       }
     }
+
+    cout << "Main thread chose: " << u << endl;
     // Put smallest vertex into mst
     inMst[u] = true;
 
     /* Update all of the new edges */
     for (int v = 0; v < numVertices; v++) {
       int edge = graph[u][v];
-      if (inMst[v] == false && edge != 0 && edge < dist[v]) {
+      if (edge != 0 && edge < dist[v]) {
+        cout << "uv: " << u << v << endl;
         mst[v] = u;
         dist[v] = edge;
       }
@@ -170,7 +187,6 @@ vector<int> parallel_primsMST(vector<vector<int>> &graph, int numThreads) {
     // All threads are blocked until the edge values are updated
     pthread_barrier_wait(&updateEdgeBarrier);
   }
-
 
 
   for (int i = 0; i < numThreads; i++){
@@ -185,7 +201,6 @@ void* parallel_primsSolve(void* args) {
 
   /* Get all parameters */
   vector<vector<int>> *graph = params->graph;
-  vector<int>* mst = params->mst;
   vector <int>* dist = params->dist;
   vector <bool>* inMst = params->inMst;
   int currThread = params->currThread;
@@ -200,20 +215,19 @@ void* parallel_primsSolve(void* args) {
 
   int end = start + (numVertices / numThreads);
 
-  (*dist)[start] = 0;
-
-  // Sequential Execution
+  /* Loop for number of vertices on all threads */
   for (int currVertex = 0; currVertex < numVertices; ++currVertex) {
-    // Find smallest edge
-    int u;
+
+    /* Find smallest local edge */
+    int u = start;
     int minEdgeDist = max;
-    for(int i = start; i < end; i++){
+    for(int i = start; i <= end; i++){
       if ((*inMst)[i] == false && minEdgeDist > (*dist)[i]) {
         u = i;
         minEdgeDist = (*dist)[i];
       }
     }
-    cout << "Thread: " << currThread << "\t found Vertex: " << u << endl;
+    //cout << "Thread: " << currThread << "\t found Vertex: " << u << endl;
     uMinThreads[currThread] = u;
 
     // Signal that local edge was found

@@ -47,7 +47,7 @@ int main()
 
         for (int v = 0; v < numVertices; ++v) {
             int edge = graph[u][v];
-            if (inMst[v] == false && edge != 0 && edge < dist[v]) {
+            if (edge != 0 && edge < dist[v]) {
                 mst[v] = u;
                 dist[v] = edge;
             }

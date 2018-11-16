@@ -31,7 +31,6 @@ void* parallel_primsSolve(void* args);
 
 struct params {
     vector<vector<int>> *graph;
-    vector<int> *mst;
     vector<bool> *inMst;
     vector<int> *dist;
     int currThread;
