@@ -69,22 +69,28 @@ def notlast(itr):
 def main():
     # Erdos Renyi graph will be connected almost surely if p_edge > ln(num_vertices)/num_vertices
     num_vertices = 10
-    p_edge = .5 # prob of an edge 0 <= p_edge <= 1
-    rand_low = 1 # random weight for edge low bbound
-    rand_high = 10 # random weight for edge high bound
+    p_edge = .5  # prob of an edge 0 <= p_edge <= 1
+    rand_low = 1  # random weight for edge low bbound
+    rand_high = 10  # random weight for edge high bound
     draw_graph = True
+    print_to_file = False
+
+    if print_to_file:
+        f1 = open('graph_output.txt', 'w+')  # Change to None for not output file
+    else:
+        f1 = None
 
     while True:
         random_graph = UndirectedErdosRenyi(num_vertices, p_edge, rand_low, rand_high)
         if random_graph.connected_bool:
-            print('int adj_matrix[{:d}][{:d}] = {{'.format(num_vertices, num_vertices))
+            print('int adj_matrix[{:d}][{:d}] = {{'.format(num_vertices, num_vertices), file=f1)
             for row in random_graph.adjacency_matrix:
-                print("{", end='')
+                print("{", end='', file=f1)
                 for item in notlast(row):
-                    print("{:d}".format(item), end=", ")
-                print("{:d}".format(row[-1]), end="}, ")
-                print("")
-            print('};')
+                    print("{:d}".format(item), end=", ", file=f1)
+                print("{:d}".format(row[-1]), end="}, ", file=f1)
+                print("", file=f1)
+            print('};', file=f1)
             break
 
     if draw_graph:
