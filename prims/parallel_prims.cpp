@@ -37,7 +37,7 @@ int main()
     // Start Timer
     clock_gettime(CLOCK_MONOTONIC, &start);
 
-    int numThreads = 2;
+    int numThreads = 3;
     mst = parallel_primsMST(graph, numThreads);
 
     // Stop Timer
@@ -214,6 +214,9 @@ void* parallel_primsSolve(void* args) {
   int start = currThread * (numVertices / numThreads);
 
   int end = start + (numVertices / numThreads);
+  if (end >= numVertices) {
+    end = numVertices - 1;
+  }
 
   /* Loop for number of vertices on all threads */
   for (int currVertex = 0; currVertex < numVertices; ++currVertex) {
