@@ -1,11 +1,13 @@
 import numpy as np
 import itertools
 import networkx as nx
+import matplotlib.pyplot as plt
 
-# Use Python 3.5
 
+# Tested on Python 3.5, use with Python 3+
 class UndirectedErdosRenyi:
     def __init__(self, num_vertices, p_edge, rand_low, rand_high):
+        self.num_vertices = num_vertices
         self.adjacency_matrix = [ [ None for j in range(num_vertices) ] for i in range(num_vertices) ]
         random_matrix = np.random.rand(num_vertices, num_vertices)
         for row_number, row in enumerate(random_matrix):
@@ -22,9 +24,39 @@ class UndirectedErdosRenyi:
 
         self.connected_bool = nx.is_connected(nx.from_numpy_matrix(np.array(self.adjacency_matrix)))
 
+    def draw_graph(self):
+        nx_matrix = nx.from_numpy_matrix(np.array(self.adjacency_matrix))
+        all_weights = []
+        pos = nx.circular_layout(nx_matrix)
+        for (node1, node2, data) in nx_matrix.edges(data=True):
+            all_weights.append(data['weight'])
+        unique_weights = list(set(all_weights))
+        for weight in unique_weights:
+            weighted_edges = [(node1, node2) for (node1, node2, edge_attr) in nx_matrix.edges(data=True) if
+                              edge_attr['weight'] == weight]
+            width = weight
+            nx.draw_networkx_edges(nx_matrix, pos, edgelist=weighted_edges, width=width)
+        nx.draw_networkx(nx_matrix, pos, cmap=plt.get_cmap('jet'), node_color=range(self.num_vertices))
+        plt.axis('off')
+        plt.title('Connected graph with {:d} nodes'.format(self.num_vertices))
+        plt.show()
+        if self.connected_bool:
+            T = nx.algorithms.minimum_spanning_tree(nx_matrix)
+            all_weights = []
+            for (node1, node2, data) in T.edges(data=True):
+                all_weights.append(data['weight'])
+            unique_weights = list(set(all_weights))
+            for weight in unique_weights:
+                weighted_edges = [(node1, node2) for (node1, node2, edge_attr) in T.edges(data=True) if
+                                  edge_attr['weight'] == weight]
+                width = weight
+                nx.draw_networkx_edges(T, pos, edgelist=weighted_edges, width=width)
+            nx.draw_networkx(T, pos, cmap=plt.get_cmap('jet'), node_color=range(self.num_vertices))
+            plt.axis('off')
+            plt.title("Minimum Spanning Tree")
+            plt.show()
 
 
-# itr is short for "iterable" and can be any sequence, iterator, or generator
 # https://stackoverflow.com/questions/2429098/how-to-treat-the-last-element-in-list-differently-in-python
 def notlast(itr):
     itr = iter(itr)  # ensure we have an iterator
@@ -35,20 +67,29 @@ def notlast(itr):
 
 
 def main():
+    # Erdos Renyi graph will be connected almost surely if p_edge > ln(num_vertices)/num_vertices
     num_vertices = 10
-    p_edge = 1 # prob of an edge 0 <= p_edge <= 1
+    p_edge = .5 # prob of an edge 0 <= p_edge <= 1
     rand_low = 1 # random weight for edge low bbound
     rand_high = 10 # random weight for edge high bound
-    random_graph = UndirectedErdosRenyi(num_vertices, p_edge, rand_low, rand_high)
-    if random_graph.connected_bool:
-        print('int adj_matrix[{:d}][{:d}] = {{'.format(num_vertices, num_vertices))
-        for row in random_graph.adjacency_matrix:
-            print("{", end='')
-            for item in notlast(row):
-                print("{:d}".format(item), end=", ")
-            print("{:d}".format(row[-1]), end="}, ")
-            print("")
-        print('};')
+    draw_graph = True
+
+    while True:
+        random_graph = UndirectedErdosRenyi(num_vertices, p_edge, rand_low, rand_high)
+        if random_graph.connected_bool:
+            print('int adj_matrix[{:d}][{:d}] = {{'.format(num_vertices, num_vertices))
+            for row in random_graph.adjacency_matrix:
+                print("{", end='')
+                for item in notlast(row):
+                    print("{:d}".format(item), end=", ")
+                print("{:d}".format(row[-1]), end="}, ")
+                print("")
+            print('};')
+            break
+
+    if draw_graph:
+        random_graph.draw_graph()
+
 
 if __name__ == "__main__":
     main()
